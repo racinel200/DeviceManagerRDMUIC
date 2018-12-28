@@ -331,6 +331,8 @@ def RestartDeviceOnDemand():
 
 def RestartDevice(device):
     
+    global currentBuilds
+    
     if Devices[device]["DeviceStatus"] == "Building" or Devices[device]["DeviceStatus"] == "Started Building":
         currentBuilds = currentBuilds - 1
 
@@ -445,7 +447,7 @@ def getDeviceOutput():
         if device == d['DeviceName']:
             deviceKey = dk
     
-    Devices[deviceKey]["LogFileNumber"]
+    
 
 
     
@@ -480,6 +482,10 @@ def getDeviceErrLog():
     except:
         number = False
     
+    deviceKey = ""
+    for dk,d in Devices.items():
+        if device == d['DeviceName']:
+            deviceKey = dk
 
     if latest == "yes":
         latestLogNumber = int(Devices[deviceKey]["LogFileNumber"])
