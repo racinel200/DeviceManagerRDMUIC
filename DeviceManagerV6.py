@@ -17,6 +17,15 @@ import time
 from time import gmtime, strftime
 from datetime import datetime
 from flask import send_file
+import flask_login
+import flask
+from flask_login import LoginManager
+from flask_login import current_user, login_user
+from flask_wtf import FlaskForm
+from wtforms import Form, BooleanField, StringField, PasswordField, validators
+
+
+
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -28,22 +37,106 @@ DeviceProcesses = dict()
 
 
 app= Flask(__name__)
-app.config['SECRET_KEY'] = "mysecret"
+app.config['SECRET_KEY'] = "secretpokemonstuff"
 socketio = SocketIO(app)
+login_manager = LoginManager()
+
+login_manager.init_app(app)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
+
+
 checkDevicesFlag = True
 currentBuilds = 0
 
 maxBuildsMessageSent = 0
 StartedUpMessageSent = dict()
 
+
+
+
+class User(flask_login.UserMixin):
+    pass
+
+
+@login_manager.user_loader
+def user_loader(email):
+    if email not in users:
+        return
+    
+    user = User()
+    user.id = email
+    return user
+
+
+@login_manager.request_loader
+def request_loader(request):
+    email = request.form.get('email')
+    if email not in users:
+        return
+    
+    user = User()
+    user.id = email
+
+    # DO NOT ever store passwords in plaintext and always compare password
+    # hashes using constant-time comparison!
+    user.is_authenticated = request.form['password'] == users[email]['password']
+
+    return user
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if flask.request.method == 'GET':
+        return '''
+            <form action='login' method='POST'>
+            <input type='text' name='email' id='email' placeholder='email'/>
+            <input type='password' name='password' id='password' placeholder='password'/>
+            <input type='submit' name='submit'/>
+            </form>
+            '''
+    
+    email = flask.request.form['email']
+    if flask.request.form['password'] == users[email]['password']:
+        user = User()
+        user.id = email
+        flask_login.login_user(user)
+        return flask.redirect(flask.url_for('protected'))
+    
+    return 'Bad login'
+
+@app.route('/logout')
+def logout():
+    flask_login.logout_user()
+    return 'Logged out'
+
+@login_manager.unauthorized_handler
+def unauthorized_handler():
+    return flask.redirect(flask.url_for('login'))
+
+@app.route('/protected')
+@flask_login.login_required
+def protected():
+    return 'Logged in as: ' + flask_login.current_user.id
+
+
 @app.route("/DeviceManager/ReloadConfig",methods=['GET'])
+def LoadConfigRequest():
+
+    LoadConfig()
+
+    return "Config File Loaded"
+
 def LoadConfig():
-
+    
     f= open("DeviceManagerConfig.json","r+")
-
+    
     configString = f.read()
     configJson = json.loads(configString)
-
+    
     global mySqlHost
     mySqlHost = configJson["mySqlHost"]
     global dbUser
@@ -108,7 +201,12 @@ def LoadConfig():
     DeviceManagerTableString = configJson["DeviceManagerTableString"]
     global dashboardURL
     dashboardURL = configJson["dashboardURL"]
+    global users
+    users = configJson["users"]
+    
+    
     return "Config File Loaded"
+
 
 
 
@@ -222,6 +320,7 @@ def stopDeviceArgument(device):
     return "Device " + str(Devices[device]['DeviceName']) + " Stopped"
 
 @app.route("/DeviceManager/RestartDevice",methods=['GET'])
+@flask_login.login_required
 def RestartDeviceOnDemand():
     device = request.args.get('Device')
     for dk,d in Devices.items():
@@ -241,6 +340,7 @@ def RestartDevice(device):
 
 
 @app.route("/DeviceManager/GetDeviceScreenshot",methods=['GET'])
+@flask_login.login_required
 def GetDeviceScreenshot():
     device = request.args.get('Device')
     for dk,d in Devices.items():
@@ -260,6 +360,7 @@ def GetDeviceCapture(device):
 
 
 @app.route("/DeviceManager/GetDeviceStatus",methods=['GET'])
+@flask_login.login_required
 def getProcessStatus():
     
     
@@ -291,6 +392,7 @@ def getProcessStatus():
     return returnString
 
 @app.route("/DeviceManager/StartDevice",methods=['GET'])
+@flask_login.login_required
 def startDeviceProcess():
     
     
@@ -312,6 +414,7 @@ def startDeviceProcess():
 
 
 @app.route("/DeviceManager/StartAll",methods=['GET'])
+@flask_login.login_required
 def startAllDeviceProcess():
     global Devices
     
@@ -325,6 +428,7 @@ def startAllDeviceProcess():
 
 
 @app.route("/DeviceManager/GetDeviceOutput",methods=['GET'])
+@flask_login.login_required
 def getDeviceOutput():
     device = request.args.get('Device')
     try:
@@ -364,6 +468,7 @@ def getDeviceOutput():
     return output
 
 @app.route("/DeviceManager/GetDeviceErrLog",methods=['GET'])
+@flask_login.login_required
 def getDeviceErrLog():
     device = request.args.get('Device')
     
@@ -396,6 +501,7 @@ def getDeviceErrLog():
 
 
 @app.route("/DeviceManager/StopDevice",methods=['GET'])
+@flask_login.login_required
 def stopDevice():
     global currentBuilds
     device = request.args.get('Device')
@@ -419,14 +525,17 @@ def stopDevice():
 
 
 @app.route("/DeviceManager/StopAll",methods=['GET'])
+@flask_login.login_required
 def stopAllDevice():
-    
+    global currentBuilds
     checkDevicesFlag = False
     
     for dk,d in Devices.items():
         pro = Devices[dk]['DeviceProcess']
         if "subprocess" in str(pro):
             try:
+                if Devices[dk]["DeviceStatus"] == "Building" or Devices[device]["DeviceStatus"] == "Started Building":
+                    currentBuilds = currentBuilds - 1
                 Devices[dk]["Enabled"] = "false"
                 os.killpg(os.getpgid(pro.pid), signal.SIGTERM)
                 print("Process for " + Devices[dk]['DeviceName'] + " Stopped")
@@ -437,7 +546,31 @@ def stopAllDevice():
     print("Check Device Flag = " + str(checkDevicesFlag))
     return "All Devices Stopped"
 
+def stopAllDeviceManual():
+    global currentBuilds
+    checkDevicesFlag = False
+    
+    proc = subprocess.Popen("killall xcodebuild" , shell=True)
+    proc.communicate()
+    
+    for dk,d in Devices.items():
+        pro = Devices[dk]['DeviceProcess']
+        if Devices[dk]["DeviceStatus"] == "Building" or Devices[dk]["DeviceStatus"] == "Started Building":
+            currentBuilds = currentBuilds - 1
+        Devices[dk]["Enabled"] = "false"
+        try:
+            os.killpg(os.getpgid(pro.pid), signal.SIGTERM)
+            print("Process for " + Devices[dk]['DeviceName'] + " Stopped")
+        except:
+            print("Unable To Stop Process")
+
+
+
+    return "All Devices Stopped"
+
+
 @app.route("/DeviceManager/RebuildDDFolder",methods=['GET'])
+@flask_login.login_required
 def RebuildDDFolderOnDemand():
     device = request.args.get('Device')
     for dk,d in Devices.items():
@@ -718,6 +851,7 @@ def CheckProcess():
         t.start()
                 
 @app.route("/DeviceManager/ReloadDeviceJson",methods=['GET'])
+@flask_login.login_required
 def reloadDeviceFile():
     
     global Devices
@@ -779,6 +913,7 @@ def uninstallUiController(device):
         print("Unable to uninstall App")
 
 @app.route("/DeviceManager/UninstallUIControl",methods=['GET'])
+@flask_login.login_required
 def uninstallUiControllerOnDemand():
     device = request.args.get('Device')
     
@@ -873,6 +1008,7 @@ def restartProcess(device, deviceName):
 
 
 @app.route("/DeviceManager/InstallAllIpa",methods=['GET'])
+@flask_login.login_required
 def installIpa():
     
     for dk,d in Devices.items():
@@ -901,8 +1037,9 @@ def installIpa():
 
 
 
+
 def signal_handler(sig, frame):
-    stopAllDevice()
+    stopAllDeviceManual()
     print('Gracefully Exiting ')
     sys.exit(0)
 
@@ -946,5 +1083,6 @@ if __name__ == "__main__":
     print("Finished Checking for DD")
     CheckProcess()
     signal.signal(signal.SIGINT, signal_handler)
+
     socketio.run(app,host='0.0.0.0', port=DeviceManagerAPIPort, debug=False)
 
