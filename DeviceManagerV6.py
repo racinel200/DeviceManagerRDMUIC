@@ -327,9 +327,9 @@ def getDeviceOutput():
     
     if latest != False:
         latestLogNumber = int(Devices[deviceKey]["LogFileNumber"])
-        f= open("DeviceLogs/" + str(device) + "/Output" + str(latestLogNumber)+ ".log","r")
+        f= open("DeviceLogs/" + str(device) + "/Output_Backup" + str(latestLogNumber)+ ".log","r")
     elif number != False:
-        f= open("DeviceLogs/" + str(device) + "/Output" + str(number)+ ".log","r")
+        f= open("DeviceLogs/" + str(device) + "/Output_Backup" + str(number)+ ".log","r")
     else:
         f= open("DeviceLogs/" + str(device) + "/Output.log","r")
 
@@ -357,11 +357,11 @@ def getDeviceErrLog():
     
     if latest != False:
         latestLogNumber = int(Devices[deviceKey]["LogFileNumber"])
-        f= open("DeviceLogs/" + str(device) + "/Output" + str(latestLogNumber)+ ".log","r")
+        f= open("DeviceLogs/" + str(device) + "/Err_Backup" + str(latestLogNumber)+ ".log","r")
     elif number != False:
-        f= open("DeviceLogs/" + str(device) + "/Output" + str(number)+ ".log","r")
+        f= open("DeviceLogs/" + str(device) + "/Err_Backup" + str(number)+ ".log","r")
     else:
-        f= open("DeviceLogs/" + str(device) + "/Output.log","r")
+        f= open("DeviceLogs/" + str(device) + "/Err.log","r")
     
     output = f.read()
     response = make_response(output)
