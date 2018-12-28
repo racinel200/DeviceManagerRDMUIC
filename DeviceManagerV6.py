@@ -84,8 +84,8 @@ def LoadConfig():
     global StartupWaitTime
     StartupWaitTime = configJson["StartupWaitTime"]
     ###How long to wait before sending a message that a device has not contacted the DB in a while##
-    global DBLastUpdatedThreshold
-    DBLastUpdatedThreshold = configJson["DBLastUpdatedThreshold"]
+    global DBLastUpdatedTimeMessageThreshold
+    DBLastUpdatedTimeMessageThreshold = configJson["DBLastUpdatedTimeMessageThreshold"]
     ###How long to wait after the app has started for it to contact the db###
     global DeviceStartupDBContactDelay
     DeviceStartupDBContactDelay = configJson["DeviceStartupDBContactDelay"]
@@ -674,14 +674,22 @@ def CheckProcess():
             ######Send Discord Message#####
             try:
                 secondsSinceLastMessage = curTime - int(Devices[dk]['RestartMessageSent'])
-                if DeviceLastUpdatedSeconds > DBLastUpdatedThreshold and (secondsSinceLastMessage > 3600 or Devices[dk]['RestartMessageSent'] <= 0) :
+                if DeviceLastUpdatedSeconds > DBLastUpdatedTimeMessageThreshold and (secondsSinceLastMessage > 3600 or Devices[dk]['RestartMessageSent'] <= 0) :
                     print("***********************")
                     print("Sending Discord Message")
-                    Devices[dk]["DeviceStatus"] = "Not Updated In a While"
                     messageText = deviceName + " has not been updated in the db in " + str(DeviceLastUpdatedSeconds) + " . You may have to restart the device"
+                    webhook = DiscordWebhook(url=NotificationWebhookURL, content='@here ' + messageText)
+                    try:
+                        GetDeviceCapture(device)
+                        with open("DeviceCapture" + dk+ ".png", "rb") as f:
+                            webhook.add_file(file=f.read(), filename='Screenshot.png')
+                    except:
+                        print("Unable to Screenshot Device")
+                    Devices[dk]["DeviceStatus"] = "Not Updated In a While"
+                    
                     Devices[dk]['RestartMessageSent'] = curTime
                     Devices[dk]["StartTime"] = 0
-                    webhook = DiscordWebhook(url=NotificationWebhookURL, content='@here ' + messageText)
+                    
                     webhook.execute()
             except:
                 print("Error Sending Discord Message")
