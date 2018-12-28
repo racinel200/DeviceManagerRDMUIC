@@ -332,9 +332,11 @@ def RestartDeviceOnDemand():
 def RestartDevice(device):
     
     global currentBuilds
+    global Devices
     
     if Devices[device]["DeviceStatus"] == "Building" or Devices[device]["DeviceStatus"] == "Started Building":
         currentBuilds = currentBuilds - 1
+    Devices[device]["DeviceStatus"] = "Rebooting Device"
 
     proc = subprocess.Popen("idevicediagnostics -u " + str(device) + " restart", shell=True)
     proc.communicate()
