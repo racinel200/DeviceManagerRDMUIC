@@ -11,3 +11,6 @@ Put your Device UUID's and names in the RDM_Devices Folder
 
 Specify your UI Control Folder in the same directory as the script plug in your DB info and backend url info and run python DeviceManagerV6.py in a console. To exit out and stop all devices use control C in the same terminal window
 
+Hit localhost:8887/DeviceManager/GetDeviceStatus to see your options of stuff to do for devices. 
+
+
