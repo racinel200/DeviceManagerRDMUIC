@@ -380,7 +380,6 @@ def getProcessStatus():
         deviceRebuildDDFolderButton = '<button onclick="window.location.href=' + "'/DeviceManager/RebuildDDFolder?Device=" + d["DeviceName"] + "'" + '">Rebuild DD Folder</button>'
         deviceScreenshotButton = '<button onclick="window.location.href=' + "'/DeviceManager/GetDeviceScreenshot?Device=" + d["DeviceName"] + "'" + '">View(USBOnly)</button>'
         deviceRestartButton = '<button onclick="window.location.href=' + "'/DeviceManager/RestartDevice?Device=" + d["DeviceName"] + "'" + '">Restart(USBOnly)</button>'
-        print(deviceStartButton)
         tableMiddleString = tableMiddleString + '<tr> <td><b>' + d["DeviceName"] + "</b>&nbsp" + deviceStopButton +deviceStartButton + '</td> <td>' + d["DeviceStatus"] + '</td> <td>' + d["DeviceInstance"] + "&nbsp" + '</td> <td>' + str(d["DeviceLastUpdatedDB"]) +'</td> <td><div>' +deviceOutputLogButton + "&nbsp" + deviceErrLogButton+ deviceDeleteUIControlButton + "&nbsp" + deviceScreenshotButton+ "</div><div>" + deviceOutputLogBackupButton + "&nbsp" + deviceErrLogBackupButton + "&nbsp" + deviceRebuildDDFolderButton + "&nbsp" + deviceRestartButton+ '</div></td> </tr> '
     #statusString = statusString + "<b>" + d["DeviceName"] + "</b> has a status of <b>" + d["DeviceStatus"] + "</b>  and was last updated in the DB <b>" + str(Devices[dk]["DeviceLastUpdatedDB"]) + "</b> seconds ago <br />"
 
