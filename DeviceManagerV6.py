@@ -335,7 +335,8 @@ def RestartDevice(device):
     global Devices
     
     if Devices[device]["DeviceStatus"] == "Building" or Devices[device]["DeviceStatus"] == "Started Building":
-        currentBuilds = currentBuilds - 1
+        if currentBuilds > 0:
+            currentBuilds = currentBuilds - 1
     Devices[device]["DeviceStatus"] = "Rebooting Device"
 
     proc = subprocess.Popen("idevicediagnostics -u " + str(device) + " restart", shell=True)
@@ -519,7 +520,8 @@ def stopDevice():
     pro = Devices[device]['DeviceProcess']
     Devices[device]["Enabled"] = "false"
     if Devices[device]["DeviceStatus"] == "Building" or Devices[device]["DeviceStatus"] == "Started Building":
-        currentBuilds = currentBuilds - 1
+        if currentBuilds > 0:
+            currentBuilds = currentBuilds - 1
 
     try:
         os.killpg(os.getpgid(pro.pid), signal.SIGTERM)
@@ -542,7 +544,8 @@ def stopAllDevice():
         if "subprocess" in str(pro):
             try:
                 if Devices[dk]["DeviceStatus"] == "Building" or Devices[device]["DeviceStatus"] == "Started Building":
-                    currentBuilds = currentBuilds - 1
+                    if currentBuilds > 0:
+                        currentBuilds = currentBuilds - 1
                 Devices[dk]["Enabled"] = "false"
                 os.killpg(os.getpgid(pro.pid), signal.SIGTERM)
                 print("Process for " + Devices[dk]['DeviceName'] + " Stopped")
@@ -563,7 +566,8 @@ def stopAllDeviceManual():
     for dk,d in Devices.items():
         pro = Devices[dk]['DeviceProcess']
         if Devices[dk]["DeviceStatus"] == "Building" or Devices[dk]["DeviceStatus"] == "Started Building":
-            currentBuilds = currentBuilds - 1
+            if currentBuilds > 0:
+                currentBuilds = currentBuilds - 1
         Devices[dk]["Enabled"] = "false"
         try:
             os.killpg(os.getpgid(pro.pid), signal.SIGTERM)
@@ -728,7 +732,8 @@ def CheckProcess():
                 timeSinceStart = curTime -  Devices[device]['StartTime']
                 Devices[dk]["DeviceBuilding"] = False
                 Devices[dk]["DeviceStatus"] = "Started Up"
-                currentBuilds = currentBuilds - 1
+                if currentBuilds > 0:
+                    currentBuilds = currentBuilds - 1
                 print("##################################")
                 print(deviceName + " Has Started")
                 print("##################################")
@@ -744,7 +749,8 @@ def CheckProcess():
                     id = None
                 ######IF Devce IS starting and the the process Failed####
                 if id == None:
-                    currentBuilds = currentBuilds - 1
+                    if currentBuilds > 0:
+                        currentBuilds = currentBuilds - 1
                     Devices[dk]["AttemptedStartTime"] = curTime
                     restartProcess(dk, deviceName)
                     continue
@@ -760,7 +766,8 @@ def CheckProcess():
                             print(str(datetime.now()))
                         except:
                             print("Error with Time")
-                        currentBuilds = currentBuilds - 1
+                        if currentBuilds > 0:
+                            currentBuilds = currentBuilds - 1
                         Devices[dk]["AttemptedStartTime"] = curTime
                         try:
                             os.killpg(os.getpgid(pro.pid), signal.SIGTERM)
