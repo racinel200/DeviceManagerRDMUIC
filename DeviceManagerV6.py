@@ -285,7 +285,7 @@ def startDeviceProcessArgument(device):
         print("####################")
         print("Starting without build")
         print("####################")
-        proc = subprocess.Popen(shlex.split('xcodebuild test-without-building -workspace RealDeviceMap-UIControl.xcworkspace -scheme "RealDeviceMap-UIControl" -destination "id={}" -allowProvisioningUpdates -destination-timeout ' + str(destinationTimeout) + ' -derivedDataPath "{}" name="{}" enableAccountManager="{}" backendURL="{}" fastIV="{}" raidMaxTime="{}" minDelayLogout="{}" targetMaxDistance="{}"'.format(device,DdFilePath, deviceName, enableAccountManager, backendURL, Devices[device]['FastIV'],  raidMaxTime, minDelayLogout, targetMaxDistance)), stdout=ConsoleFile, cwd=workspacePath,preexec_fn=os.setsid, stderr = ErrFile )
+        proc = subprocess.Popen(shlex.split('xcodebuild test-without-building -workspace RealDeviceMap-UIControl.xcworkspace -scheme "RealDeviceMap-UIControl" -destination "id={}" -allowProvisioningUpdates -destination-timeout "{}" -derivedDataPath "{}" name="{}" enableAccountManager="{}" backendURL="{}" fastIV="{}" raidMaxTime="{}" minDelayLogout="{}" targetMaxDistance="{}"'.format(device,destinationTimeout, DdFilePath, deviceName, enableAccountManager, backendURL, Devices[device]['FastIV'],  raidMaxTime, minDelayLogout, targetMaxDistance)), stdout=ConsoleFile, cwd=workspacePath,preexec_fn=os.setsid, stderr = ErrFile )
     else:
         print("####################")
         print("Starting with build")
