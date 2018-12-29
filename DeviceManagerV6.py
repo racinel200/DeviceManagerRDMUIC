@@ -334,14 +334,17 @@ def RestartDevice(device):
     global currentBuilds
     global Devices
     
+    Devices[device]["Enabled"] = "false"
     if Devices[device]["DeviceStatus"] == "Building" or Devices[device]["DeviceStatus"] == "Started Building":
         if currentBuilds > 0:
             currentBuilds = currentBuilds - 1
+    Devices[dk]["DeviceBuilding"] = False
     Devices[device]["DeviceStatus"] = "Rebooting Device"
+    
 
     proc = subprocess.Popen("idevicediagnostics -u " + str(device) + " restart", shell=True)
     proc.communicate()
-
+    Devices[device]["Enabled"] = "true"
 
 
 @app.route("/DeviceManager/GetDeviceScreenshot",methods=['GET'])
@@ -739,6 +742,9 @@ def CheckProcess():
                 print("##################################")
             ####Device Not Done Building
             else:
+                if Devices[dk]["DeviceStatus"] == "Rebooting Device":
+                    print("Device Rebooting Skipping")
+                    continue
                 Devices[dk]["DeviceStatus"] = "Started Building"
                 print("Device " + deviceName + " Attempting to start")
                 ## Check for no process
@@ -777,6 +783,9 @@ def CheckProcess():
                         continue
         #######IF Device IS Not Building######
         else:
+            if Devices[dk]["DeviceStatus"] == "Rebooting Device":
+                print("Device Rebooting Skipping")
+                continue
             mtime = int(os.path.getmtime(logFilePath))
             secondsSinceUpdate = (curTime - mtime)
             if currentBuilds == maxBuilds:
@@ -1013,7 +1022,11 @@ def restartProcess(device, deviceName):
     shutil.copyfile("DeviceLogs/" + str(deviceName) + "/Err.log", "DeviceLogs/" + str(deviceName) + "/Err_Backup" + str(Devices[dk]["LogFileNumber"]) + ".log")
     shutil.copyfile("DeviceLogs/" + str(deviceName) + "/Output.log", "DeviceLogs/" + str(deviceName) + "/Output_Backup" + str(Devices[dk]["LogFileNumber"]) + ".log")
     #########################
-    currentBuilds = currentBuilds +1
+    if currentBuilds == maxBuilds:
+        Devices[dk]["DeviceStatus"] = "Queued"
+        print("Max Builds Reached When attempting Restart")
+        return
+    currentBuilds = currentBuilds + 1
     Devices[dk]["StartTime"] = 0
     curTime = int(time.time())
     Devices[dk]["AttemptedStartTime"] = curTime
