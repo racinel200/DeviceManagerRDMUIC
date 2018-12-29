@@ -339,6 +339,7 @@ def RestartDevice(device):
         if currentBuilds > 0:
             currentBuilds = currentBuilds - 1
     Devices[dk]["DeviceBuilding"] = False
+    Devices[dk]["DeviceProcess"] = "None"
     Devices[device]["DeviceStatus"] = "Rebooting Device"
     
 
@@ -783,9 +784,7 @@ def CheckProcess():
                         continue
         #######IF Device IS Not Building######
         else:
-            if Devices[dk]["DeviceStatus"] == "Rebooting Device":
-                print("Device Rebooting Skipping")
-                continue
+            
             mtime = int(os.path.getmtime(logFilePath))
             secondsSinceUpdate = (curTime - mtime)
             if currentBuilds == maxBuilds:
