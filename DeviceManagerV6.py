@@ -338,8 +338,8 @@ def RestartDevice(device):
     if Devices[device]["DeviceStatus"] == "Building" or Devices[device]["DeviceStatus"] == "Started Building":
         if currentBuilds > 0:
             currentBuilds = currentBuilds - 1
-    Devices[dk]["DeviceBuilding"] = False
-    Devices[dk]["DeviceProcess"] = "None"
+    Devices[device]["DeviceBuilding"] = False
+    Devices[device]["DeviceProcess"] = "None"
     Devices[device]["DeviceStatus"] = "Rebooting Device"
     
 
