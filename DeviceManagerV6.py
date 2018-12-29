@@ -469,7 +469,7 @@ def getDeviceOutput():
     f.close()
     
     
-    return output
+    return "<pre>" + output + "</pre>"
 
 @app.route("/DeviceManager/GetDeviceErrLog",methods=['GET'])
 @flask_login.login_required
@@ -505,7 +505,7 @@ def getDeviceErrLog():
     f.close()
     
     
-    return output
+    return "<pre>" + output + "</pre>"
 
 
 @app.route("/DeviceManager/StopDevice",methods=['GET'])
