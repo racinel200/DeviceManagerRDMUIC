@@ -1066,8 +1066,55 @@ def installIpa():
 
     return "All Devices Installed"
 
+@app.route("/DeviceManager/SQLQuery",methods=['GET'])
+@flask_login.login_required
+def performSqlQuery():
+
+    query = request.args.get('Query')
+
+    mydb = mysql.connector.connect(host= mySqlHost ,user= dbUser,passwd=dbPW, database="rdmdb", port=dbPort, connection_timeout = dbTimeout)
+    mycursor = mydb.cursor(dictionary=True)
+    mycursor.execute(query)
+    try:
+        
+        myresult = mycursor.fetchall()
+        print(myresult)
+		
+    except:
+        myresult={}
+        print("DB error")
+    mydb.close()
+
+    print(myresult)
+
+    return jsonify(myresult)
+
+@app.route("/DeviceManager/AssignDevice",methods=['GET'])
+@flask_login.login_required
+def assignDevice():
+
+    device = request.args.get('Device')
+    instance = request.args.get('Instance')
+    print(device)
+    print(instance)
+    session = requests.Session()
+    CSRF = "4D2BA2C6-56EB-4DE1-8034-C5A4178EA443"
+    SessionToken = "0F2CE186-B23D-47FF-8839-739C46C7F335"
+
+    #r = session.get( "http://pogobadger.com:9000/api/get_data", auth=("racinel200","Pokemon12#"))
+   # print(r.text)
+
+    headers1= {"Content-Type":"application/x-www-form-urlencoded", "Origin": "http://pogobadger.com:9000", "Cookie":"SESSION-TOKEN="+ SessionToken+ ";CSRF-TOKEN="+CSRF}
+
+    body = "instance="+ instance + "&_csrf="+ CSRF
+
+    r = session.post("http://pogobadger.com:9000/dashboard/device/assign/"+device, headers=headers1, data = body)
 
 
+    print(r.status_code)
+
+
+    return jsonify(r.status_code)
 
 
 
