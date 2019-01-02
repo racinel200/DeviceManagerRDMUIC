@@ -205,6 +205,10 @@ def LoadConfig():
     global users
     users = configJson["users"]
     global destinationTimeout
+    global CSRF
+    CSRF = configJson["CSRF"]
+    global SessionToken
+    SessionToken = configJson["SessionToken"]
     try:
         destinationTimeout = configJson["destinationTimeout"]
     except:
