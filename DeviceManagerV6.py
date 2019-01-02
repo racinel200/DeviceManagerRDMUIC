@@ -1120,6 +1120,54 @@ def assignDevice():
 
     return jsonify(r.status_code)
 
+@app.route("/DeviceManager/AutoAssignDevice",methods=['GET'])
+@flask_login.login_required
+def AutoAssignDevice():
+
+    device = request.args.get('Device')
+    instance = request.args.get('Instance')
+    time = request.args.get('Time')
+
+    print(device)
+    print(instance)
+    session = requests.Session()
+   
+
+    headers1= {"Content-Type":"application/x-www-form-urlencoded", "Origin": dashboardURL, "Cookie":"SESSION-TOKEN="+ SessionToken+ ";CSRF-TOKEN="+CSRF}
+
+    body = "device=" + device + "&instance="+ instance + "&time=" + str(time) +"&_csrf="+ CSRF
+
+    r = session.post(dashboardURL + "/dashboard/assignment/add", headers=headers1, data = body)
+
+
+    print(r.status_code)
+
+
+    return jsonify(r.status_code)
+
+@app.route("/DeviceManager/DeleteAutoAssignDevice",methods=['GET'])
+@flask_login.login_required
+def DeleteAutoAssignDevice():
+
+    device = request.args.get('Device')
+    instance = request.args.get('Instance')
+    time = request.args.get('Time')
+
+    print(device)
+    print(instance)
+    session = requests.Session()
+   
+
+    headers1= {"Content-Type":"application/x-www-form-urlencoded", "Origin": dashboardURL, "Cookie":"SESSION-TOKEN="+ SessionToken+ ";CSRF-TOKEN="+CSRF}
+
+
+    r = session.get(dashboardURL + "/dashboard/assignment/delete/" + instance + "\-" + device + "\-" + time , headers=headers1)
+
+
+    print(r.status_code)
+
+
+    return jsonify(r.status_code)
 
 
 def signal_handler(sig, frame):
