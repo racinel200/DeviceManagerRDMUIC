@@ -230,6 +230,10 @@ def LoadConfig():
     global destinationTimeout
     global CSRF
     CSRF = configJson["CSRF"]
+    global APIUsername
+    APIUsername = configJson["APIUsername"]
+    global APIPassword
+    APIPassword = configJson["APIPassword"]
     global SessionToken
     SessionToken = configJson["SessionToken"]
     try:
