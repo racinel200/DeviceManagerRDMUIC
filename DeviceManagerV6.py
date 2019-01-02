@@ -8,6 +8,7 @@ import urllib
 import signal
 import shlex
 import signal
+from flask_cors import CORS
 from threading import Timer
 import mysql.connector
 from discord_webhook import DiscordWebhook
@@ -41,6 +42,7 @@ app= Flask(__name__)
 app.config['SECRET_KEY'] = "secretpokemonstuff"
 socketio = SocketIO(app)
 login_manager = LoginManager()
+CORS(app, supports_credentials=True)
 
 login_manager.init_app(app)
 
