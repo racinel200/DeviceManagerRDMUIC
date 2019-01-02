@@ -9,6 +9,8 @@
     "delayTime": 1,
     "backendURL": "http://BACKENDURL:9001",
     "dashboardURL": "http://DASHBOARDURL:9000/dashboard",
+    "CSRF":"YOURCSRF",
+    "SessionToken": "YourSessionToken",
     "maxBuilds": 3,
     "logFilesToKeep":15,
     "IpaDelay": 15,
