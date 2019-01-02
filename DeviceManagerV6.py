@@ -105,7 +105,7 @@ def login():
         user = User()
         user.id = email
         flask_login.login_user(user)
-        return flask.redirect(flask.url_for('protected'))
+        return flask.redirect(flask.url_for('DeviceManager/GetDeviceStatus'))
     
     return 'Bad login'
 
