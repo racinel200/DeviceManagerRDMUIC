@@ -335,6 +335,7 @@ def startDeviceProcessArgument(device):
 
     
     #proc = subprocess.Popen('python run.py', cwd=filePath, shell=True, preexec_fn=os.setsid, stdout=ConsoleFile)
+    Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
     Devices[dk]["DeviceStatus"] = "Building"
     Devices[device]['DeviceProcess'] = proc
     curTime = int(time.time())
@@ -352,6 +353,7 @@ def stopDeviceArgument(device):
         if device == d['DeviceName']:
             device = dk
     pro = Devices[device]['DeviceProcess']
+    Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
     Devices[device]["DeviceStatus"] = "Disabled"
 
     os.killpg(os.getpgid(pro.pid), signal.SIGTERM)
@@ -379,6 +381,7 @@ def RestartDevice(device):
             currentBuilds = currentBuilds - 1
     Devices[device]["DeviceBuilding"] = False
     Devices[device]["DeviceProcess"] = "None"
+    Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
     Devices[device]["DeviceStatus"] = "Rebooting Device"
     
 
@@ -685,6 +688,8 @@ def CheckProcess():
             Devices[dk]["DeviceLastUpdatedDB"] = "Has Not Contacted Yet"
         if "DeviceInstance" not in Devices[dk]:
             Devices[dk]["DeviceInstance"] = "Unknown"
+	if "OldDeviceStatus" not in Devices[dk]:
+            Devices[dk]["OldDeviceStatus"] = "Not Started"
 
 
 
@@ -701,6 +706,7 @@ def CheckProcess():
 
         ##### Check if Device is Enabled Stop if not#####
         if deviceEnabled != "true":
+	    Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
             Devices[dk]["DeviceStatus"] = "Disabled"
             try:
                 os.killpg(os.getpgid(pro.pid), signal.SIGTERM)
@@ -719,6 +725,19 @@ def CheckProcess():
             try:
                 myresult = mycursor.fetchone()
                 DeviceLastUpdatedSeconds = curTime - myresult[2]
+		if DeviceLastUpdatedSeconds > 300:
+			Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
+           		Devices[dk]["DeviceStatus"] = "Not Updated In A While"
+		
+		if Devices[dk]["OldDeviceStatus"] != Devices[dk]["DeviceStatus"]:
+			try:
+           			mycursor.execute("update DeviceManagerDevices set deviceStatus='" + Devices[dk]["DeviceStatus"] + "' where uuid = '" + dk + "'"
+				mydb.commit()
+			except:
+				print("Unable to update device Status")
+				
+				
+			
                 Devices[dk]["DeviceLastUpdatedDB"] = DeviceLastUpdatedSeconds
                 Devices[dk]["DeviceInstance"] = myresult[1]
             except:
@@ -774,6 +793,7 @@ def CheckProcess():
                 Devices[device]['StartTime'] = int(time.time())
                 timeSinceStart = curTime -  Devices[device]['StartTime']
                 Devices[dk]["DeviceBuilding"] = False
+		Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
                 Devices[dk]["DeviceStatus"] = "Started Up"
                 if currentBuilds > 0:
                     currentBuilds = currentBuilds - 1
@@ -784,8 +804,9 @@ def CheckProcess():
             else:
                 if Devices[dk]["DeviceStatus"] == "Rebooting Device":
                     print("Device Rebooting Skipping")
-                    continue
+                    continue 
                 Devices[dk]["DeviceStatus"] = "Started Building"
+		Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
                 print("Device " + deviceName + " Attempting to start")
                 ## Check for no process
                 try:
@@ -879,8 +900,10 @@ def CheckProcess():
                             webhook.add_file(file=f.read(), filename='Screenshot.png')
                     except:
                         print("Unable to Screenshot Device")
-                    Devices[dk]["DeviceStatus"] = "Not Updated In a While"
+		    
                     
+                    Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
+                    Devices[dk]["DeviceStatus"] = "Not Updated In a While"
                     Devices[dk]['RestartMessageSent'] = curTime
                     Devices[dk]["StartTime"] = 0
                     
@@ -1003,7 +1026,7 @@ def restartProcess(device, deviceName):
     
     dk = device
     
-    
+    Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
     Devices[dk]["DeviceStatus"] = "Restarting"
     
     print("Unable to find Process")
@@ -1061,6 +1084,7 @@ def restartProcess(device, deviceName):
     shutil.copyfile("DeviceLogs/" + str(deviceName) + "/Output.log", "DeviceLogs/" + str(deviceName) + "/Output_Backup" + str(Devices[dk]["LogFileNumber"]) + ".log")
     #########################
     if currentBuilds == maxBuilds:
+	Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
         Devices[dk]["DeviceStatus"] = "Queued"
         print("Max Builds Reached When attempting Restart")
         return
