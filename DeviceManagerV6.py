@@ -80,7 +80,11 @@ def user_loader(email):
 @login_manager.request_loader
 def request_loader(request):
     email = request.form.get('email')
-    if email not in users:
+    if not email:
+        auth = request.authorization
+        email = auth.username
+    if email not in users and email != APIUsername:
+        print("No Username email")
         return
     
     user = User()
@@ -88,7 +92,17 @@ def request_loader(request):
 
     # DO NOT ever store passwords in plaintext and always compare password
     # hashes using constant-time comparison!
-    user.is_authenticated = request.form['password'] == users[email]['password']
+    try:
+        user.is_authenticated = request.form['password'] == users[email]['password']
+    except:
+        print("Cant GEt that way")
+    if not user:
+        print("Not Authenticated")
+        auth = request.authorization
+        
+        if auth or check_auth(auth.username, auth.password):
+            user.is_authenticated = True
+
 
     return user
 
