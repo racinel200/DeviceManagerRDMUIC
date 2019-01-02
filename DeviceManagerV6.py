@@ -716,6 +716,7 @@ def CheckProcess():
                 continue
         #########################
 
+
         try:
             curTime = int(time.time())
             mydb = mysql.connector.connect(host= mySqlHost ,user= dbUser,passwd=dbPW, database="rdmdb", port=dbPort, connection_timeout = dbTimeout)
@@ -724,13 +725,13 @@ def CheckProcess():
             try:
                 myresult = mycursor.fetchone()
                 DeviceLastUpdatedSeconds = curTime - myresult[2]
-                if DeviceLastUpdatedSeconds > 300:
+                if DeviceLastUpdatedSeconds > 300 and Devices[dk]["DeviceStatus"] == "Started Up":
                     Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
                     Devices[dk]["DeviceStatus"] = "Not Updated In A While"
 		
                 if Devices[dk]["OldDeviceStatus"] != Devices[dk]["DeviceStatus"]:
                     try:
-                        mycursor.execute("update DeviceManagerDevices set deviceStatus='" + Devices[dk]["DeviceStatus"] + "' where uuid = '" + dk + "'")
+                        mycursor.execute("update DeviceManagerDevices set deviceStatus='" + Devices[dk]["DeviceStatus"] + "' where uuid = '" + deviceName + "'")
                         
                     except:
                         print("Unable to update device Status")
@@ -747,7 +748,6 @@ def CheckProcess():
             print(str(datetime.now()))
             DeviceLastUpdatedSeconds =0
             Devices[dk]["DeviceLastUpdatedDB"] = DeviceLastUpdatedSeconds
-		
 
        ###############Chekc if Device Has Started for first TIME#########
         if "subprocess" in str(pro):
@@ -792,7 +792,7 @@ def CheckProcess():
                 Devices[device]['StartTime'] = int(time.time())
                 timeSinceStart = curTime -  Devices[device]['StartTime']
                 Devices[dk]["DeviceBuilding"] = False
-		Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
+                Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
                 Devices[dk]["DeviceStatus"] = "Started Up"
                 if currentBuilds > 0:
                     currentBuilds = currentBuilds - 1
@@ -803,9 +803,9 @@ def CheckProcess():
             else:
                 if Devices[dk]["DeviceStatus"] == "Rebooting Device":
                     print("Device Rebooting Skipping")
-                    continue 
+                    continue
+                Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
                 Devices[dk]["DeviceStatus"] = "Started Building"
-		Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
                 print("Device " + deviceName + " Attempting to start")
                 ## Check for no process
                 try:
@@ -813,6 +813,8 @@ def CheckProcess():
                 ### Check for no Log Updates
                 except:
                     id = None
+                    Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
+                    Devices[dk]["DeviceStatus"] = "Started Up"
                 ######IF Devce IS starting and the the process Failed####
                 if id == None:
                     if currentBuilds > 0:
@@ -1083,7 +1085,7 @@ def restartProcess(device, deviceName):
     shutil.copyfile("DeviceLogs/" + str(deviceName) + "/Output.log", "DeviceLogs/" + str(deviceName) + "/Output_Backup" + str(Devices[dk]["LogFileNumber"]) + ".log")
     #########################
     if currentBuilds == maxBuilds:
-	Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
+        Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
         Devices[dk]["DeviceStatus"] = "Queued"
         print("Max Builds Reached When attempting Restart")
         return
