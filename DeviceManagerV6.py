@@ -86,7 +86,7 @@ def request_loader(request):
     if email not in users and email != APIUsername:
         print("No Username email")
         return
-    
+
     user = User()
     user.id = email
 
@@ -702,7 +702,7 @@ def CheckProcess():
             Devices[dk]["DeviceLastUpdatedDB"] = "Has Not Contacted Yet"
         if "DeviceInstance" not in Devices[dk]:
             Devices[dk]["DeviceInstance"] = "Unknown"
-	if "OldDeviceStatus" not in Devices[dk]:
+        if "OldDeviceStatus" not in Devices[dk]:
             Devices[dk]["OldDeviceStatus"] = "Not Started"
 
 
@@ -739,24 +739,27 @@ def CheckProcess():
             try:
                 myresult = mycursor.fetchone()
                 DeviceLastUpdatedSeconds = curTime - myresult[2]
+                '''
                 if DeviceLastUpdatedSeconds > 300 and Devices[dk]["DeviceStatus"] == "Started Up":
                     Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
                     Devices[dk]["DeviceStatus"] = "Not Updated In A While"
-		
+                '''
+                '''
                 if Devices[dk]["OldDeviceStatus"] != Devices[dk]["DeviceStatus"]:
                     try:
                         mycursor.execute("update DeviceManagerDevices set deviceStatus='" + Devices[dk]["DeviceStatus"] + "' where uuid = '" + deviceName + "'")
-                        
+                        mydb.commit()
+                        mydb.close()
                     except:
+                        mydb.close()
                         print("Unable to update device Status")
-
+                '''
                 Devices[dk]["DeviceLastUpdatedDB"] = DeviceLastUpdatedSeconds
                 Devices[dk]["DeviceInstance"] = myresult[1]
             except:
                 print("DB Connection Timeout")
                 DeviceLastUpdatedSeconds = 0
-            mydb.commit()
-            mydb.close()
+            
         except:
             print("Error connecting to DB")
             print(str(datetime.now()))
@@ -824,13 +827,12 @@ def CheckProcess():
                 ## Check for no process
                 try:
                     id = (os.getpgid(pro.pid))
-                    Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
-                    Devices[dk]["DeviceStatus"] = "Started Up"
+
+
                 ### Check for no Log Updates
                 except:
                     id = None
-                    Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
-                    Devices[dk]["DeviceStatus"] = "Started Up"
+                    
                 ######IF Devce IS starting and the the process Failed####
                 if id == None:
                     if currentBuilds > 0:
@@ -874,6 +876,7 @@ def CheckProcess():
             #####Chekc For RUnning Process#####
             try:
                 id = (os.getpgid(pro.pid))
+                Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
                 Devices[dk]["DeviceStatus"] = "Started Up"
                 #print("ProcessId " + str(id) + " started for" + d['DeviceName'])
             except:
@@ -1237,6 +1240,22 @@ def DeleteAutoAssignDevice():
 
     return jsonify(r.status_code)
 
+def updateDevices():
+    mydb = mysql.connector.connect(host= mySqlHost ,user= dbUser,passwd=dbPW, database="rdmdb", port=dbPort, connection_timeout = dbTimeout)
+    mycursor = mydb.cursor()
+    for dk, d in Devices.items() :
+        try:
+            if Devices[dk]["OldDeviceStatus"] != d["DeviceStatus"]:
+                mycursor.execute("update DeviceManagerDevices set deviceStatus='" + d["DeviceStatus"] + "' where uuid = '" + d["DeviceName"] + "'")
+                mydb.commit()
+    
+            
+        except:
+            print("Unable to update Device")
+    mydb.close()
+
+    t = Timer(5, updateDevices )
+    t.start()
 
 def signal_handler(sig, frame):
     stopAllDeviceManual()
@@ -1282,6 +1301,7 @@ if __name__ == "__main__":
 
     print("Finished Checking for DD")
     CheckProcess()
+    updateDevices()
     signal.signal(signal.SIGINT, signal_handler)
 
     socketio.run(app,host='0.0.0.0', port=DeviceManagerAPIPort, debug=False)
