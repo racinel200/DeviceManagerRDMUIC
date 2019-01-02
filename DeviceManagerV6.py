@@ -810,6 +810,8 @@ def CheckProcess():
                 ## Check for no process
                 try:
                     id = (os.getpgid(pro.pid))
+                    Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
+                    Devices[dk]["DeviceStatus"] = "Started Up"
                 ### Check for no Log Updates
                 except:
                     id = None
