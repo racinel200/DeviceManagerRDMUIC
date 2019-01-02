@@ -706,7 +706,7 @@ def CheckProcess():
 
         ##### Check if Device is Enabled Stop if not#####
         if deviceEnabled != "true":
-	    Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
+            Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
             Devices[dk]["DeviceStatus"] = "Disabled"
             try:
                 os.killpg(os.getpgid(pro.pid), signal.SIGTERM)
