@@ -12,6 +12,8 @@
     "CSRF":"YOURCSRF",
     "SessionToken": "YourSessionToken",
     "maxBuilds": 3,
+    "APIUsername" : "yourApiUsername",
+    "APIPassword": "PokemonIsAwesome",
     "logFilesToKeep":15,
     "IpaDelay": 15,
     "StartupWaitTime": 240,
