@@ -335,11 +335,11 @@ def startDeviceProcessArgument(device):
 
     
     #proc = subprocess.Popen('python run.py', cwd=filePath, shell=True, preexec_fn=os.setsid, stdout=ConsoleFile)
-    Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
-    Devices[dk]["DeviceStatus"] = "Building"
+    Devices[device]["OldDeviceStatus"] = Devices[device]["DeviceStatus"]
+    Devices[device]["DeviceStatus"] = "Building"
     Devices[device]['DeviceProcess'] = proc
     curTime = int(time.time())
-    Devices[dk]["AttemptedStartTime"] = curTime
+    Devices[device]["AttemptedStartTime"] = curTime
     #out,err = proc.communicate()
     Devices[device]['DeviceProcOut'] = ConsoleFile
     #Devices[device]['DeviceProcErr'] = err
@@ -716,7 +716,6 @@ def CheckProcess():
                 continue
         #########################
 
-
         try:
             curTime = int(time.time())
             mydb = mysql.connector.connect(host= mySqlHost ,user= dbUser,passwd=dbPW, database="rdmdb", port=dbPort, connection_timeout = dbTimeout)
@@ -725,30 +724,30 @@ def CheckProcess():
             try:
                 myresult = mycursor.fetchone()
                 DeviceLastUpdatedSeconds = curTime - myresult[2]
-		if DeviceLastUpdatedSeconds > 300:
-			Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
-           		Devices[dk]["DeviceStatus"] = "Not Updated In A While"
+                if DeviceLastUpdatedSeconds > 300:
+                    Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
+                    Devices[dk]["DeviceStatus"] = "Not Updated In A While"
 		
-		if Devices[dk]["OldDeviceStatus"] != Devices[dk]["DeviceStatus"]:
-			try:
-           			mycursor.execute("update DeviceManagerDevices set deviceStatus='" + Devices[dk]["DeviceStatus"] + "' where uuid = '" + dk + "'"
-				mydb.commit()
-			except:
-				print("Unable to update device Status")
-				
-				
-			
+                if Devices[dk]["OldDeviceStatus"] != Devices[dk]["DeviceStatus"]:
+                    try:
+                        mycursor.execute("update DeviceManagerDevices set deviceStatus='" + Devices[dk]["DeviceStatus"] + "' where uuid = '" + dk + "'")
+                        
+                    except:
+                        print("Unable to update device Status")
+
                 Devices[dk]["DeviceLastUpdatedDB"] = DeviceLastUpdatedSeconds
                 Devices[dk]["DeviceInstance"] = myresult[1]
             except:
                 print("DB Connection Timeout")
                 DeviceLastUpdatedSeconds = 0
+            mydb.commit()
             mydb.close()
         except:
             print("Error connecting to DB")
             print(str(datetime.now()))
             DeviceLastUpdatedSeconds =0
             Devices[dk]["DeviceLastUpdatedDB"] = DeviceLastUpdatedSeconds
+		
 
        ###############Chekc if Device Has Started for first TIME#########
         if "subprocess" in str(pro):
