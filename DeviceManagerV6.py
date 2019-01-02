@@ -1073,7 +1073,7 @@ def performSqlQuery():
 
     query = request.args.get('Query')
 
-    mydb = mysql.connector.connect(host= mySqlHost ,user= dbUser,passwd=dbPW, database="rdmdb", port=dbPort, connection_timeout = dbTimeout)
+    mydb = mysql.connector.connect(host= mySqlHost ,user= dbUser,passwd=dbPW, database="rdmdb", port=dbPort, connection_timeout = 15)
     mycursor = mydb.cursor(dictionary=True)
     mycursor.execute(query)
     try:
@@ -1099,17 +1099,16 @@ def assignDevice():
     print(device)
     print(instance)
     session = requests.Session()
-    CSRF = "4D2BA2C6-56EB-4DE1-8034-C5A4178EA443"
-    SessionToken = "0F2CE186-B23D-47FF-8839-739C46C7F335"
+    CSRF = "YOURCSRF"
+    SessionToken = "YOURTOKEN"
+    dashboardURL  = "YourDashboardURL"
 
-    #r = session.get( "http://pogobadger.com:9000/api/get_data", auth=("racinel200","Pokemon12#"))
-   # print(r.text)
 
-    headers1= {"Content-Type":"application/x-www-form-urlencoded", "Origin": "http://pogobadger.com:9000", "Cookie":"SESSION-TOKEN="+ SessionToken+ ";CSRF-TOKEN="+CSRF}
+    headers1= {"Content-Type":"application/x-www-form-urlencoded", "Origin": dashboardURL, "Cookie":"SESSION-TOKEN="+ SessionToken+ ";CSRF-TOKEN="+CSRF}
 
     body = "instance="+ instance + "&_csrf="+ CSRF
 
-    r = session.post("http://pogobadger.com:9000/dashboard/device/assign/"+device, headers=headers1, data = body)
+    r = session.post(dashboardURL + "/dashboard/device/assign/"+device, headers=headers1, data = body)
 
 
     print(r.status_code)
