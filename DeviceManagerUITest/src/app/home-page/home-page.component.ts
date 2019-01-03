@@ -46,21 +46,28 @@ export class HomePageComponent implements OnInit {
         this.devices = JSON.parse(data["_body"])
 
 	var LastSecondGoodCount = 0
+  var disabledCount = 0
 	for (let d in this.devices){
 		var currentTime = Math.floor(Date.now() /1000)
 		var SecondsSinceUpdate  = currentTime - this.devices[d]['last_seen']
 		console.log(SecondsSinceUpdate)
-		if (SecondsSinceUpdate < 180 ){
+    this.devices[d]["SecondsSinceUpdate"] = SecondsSinceUpdate
       if (this.devices[d]['enabled'] != 0){
+        if (SecondsSinceUpdate < 180 ){
+        console.log("Enabled")
+        console.log(this.devices[d]['enabled'])
         LastSecondGoodCount = LastSecondGoodCount + 1
-
+        
       }
-		
-			}
-		this.devices[d]["SecondsSinceUpdate"] = SecondsSinceUpdate
+			}else{
+        console.log("Disabled")
+        disabledCount = disabledCount + 1
+      
+      }
+	
 
 	}
-	this.LastUpdatePercent = (LastSecondGoodCount  / this.devices.length) * 100
+	this.LastUpdatePercent = (LastSecondGoodCount  / (this.devices.length - disabledCount) )  * 100
 	
   
       
