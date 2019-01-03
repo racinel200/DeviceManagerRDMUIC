@@ -729,7 +729,9 @@ def CheckProcess():
                 if DeviceLastUpdatedSeconds > 300 and Devices[dk]["DeviceStatus"] == "Started Up":
                     Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
                     Devices[dk]["DeviceStatus"] = "Not Updated In A While"
-                
+                if DeviceLastUpdatedSeconds > 30 and Devices[dk]["DeviceStatus"] == "Not Updated In A While":
+                    Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
+                    Devices[dk]["DeviceStatus"] = "Started Up"
                 '''
                 if Devices[dk]["OldDeviceStatus"] != Devices[dk]["DeviceStatus"]:
                     try:
