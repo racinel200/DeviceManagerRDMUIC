@@ -27,6 +27,7 @@ from flask_wtf import FlaskForm
 from wtforms import Form, BooleanField, StringField, PasswordField, validators
 from functools import wraps
 import socket
+from subprocess import Popen, PIPE, STDOUT
 
 
 
@@ -1295,6 +1296,48 @@ def updateDevicesFromJson():
     mydb.close()
 
 
+def tryToGetDevices():
+    
+    global Devices
+    CompDevices = list()
+    cmd = 'idevice_id -l'
+    p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+    for line in p.stdout:
+        line = line.rstrip()
+        CompDevices.append(line)
+        print line
+    
+    f= open("RDM_Devices.json","r+")
+
+    DeviceString = f.read()
+    TempDevices = json.loads(DeviceString)
+    for d in CompDevices:
+        if d not in TempDevices and d != "Known Devices:":
+            addDevice = raw_input("Would you like to add Device " + str(d) + "y/n")
+            if addDevice == "y":
+                TempDevices[d] = dict()
+                #inputDeviceName = raw_input("Please Name the device")
+                TempDevices[d]["DeviceName"] = raw_input("Please Name the device")
+                TempDevices[d]["BackEndUrl"] = backendURL
+                TempDevices[d]["FastIV"] = "false"
+                TempDevices[d]["EnableAccountManager"]= "true"
+                TempDevices[d]["DeviceFolder"]= uiControlFolder
+                TempDevices[d]["AutoRestartDevice"]= "true"
+                TempDevices[d]["DeviceProcess"]= "None"
+                TempDevices[d]["DeviceProcOut"]= ""
+                TempDevices[d]["Enabled"]= "true"
+                TempDevices[d]["RestartMessageSent"]= "0"
+                TempDevices[d]["IpaPath"]= raw_input("Please Enter Device IPA Path")
+                TempDevices[d]["DeviceProcErr"] = ""
+
+    PrettyJson = json.dumps(TempDevices, indent=4, sort_keys=False)
+    f.seek(0)
+    f.write(str(PrettyJson))
+    f.truncate()
+    f.close()
+
+
+
 
 def signal_handler(sig, frame):
     stopAllDeviceManual()
@@ -1306,6 +1349,9 @@ if __name__ == "__main__":
     checkDevicesFlag = True
     
     LoadConfig()
+    
+    tryToGetDevices()
+    
     for dk, d in Devices.items() :
         
         if os.path.exists("DD/" + d['DeviceName']):
@@ -1345,4 +1391,5 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
 
     socketio.run(app,host='0.0.0.0', port=DeviceManagerAPIPort, debug=False)
+    
 
