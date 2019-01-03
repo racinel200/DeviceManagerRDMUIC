@@ -1149,6 +1149,8 @@ def performSqlQuery():
     except:
         myresult={}
         print("DB error")
+	
+    mydb.commit()	
     mydb.close()
 
     print(myresult)
