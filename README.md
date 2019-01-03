@@ -70,4 +70,5 @@ FROM rdmdb.device
 
 Unzip the DeviceManagerUI folder and edit the username and password in the home-page.compoenents.ts and the device-group.components.ts
 
+run npm install to install dependencies and then run ng serve --open 
 
