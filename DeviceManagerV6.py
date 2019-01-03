@@ -80,29 +80,15 @@ def user_loader(email):
 @login_manager.request_loader
 def request_loader(request):
     email = request.form.get('email')
-    if not email:
-        auth = request.authorization
-        email = auth.username
-    if email not in users and email != APIUsername:
-        print("No Username email")
+    if email not in users:
         return
-
+    
     user = User()
     user.id = email
 
     # DO NOT ever store passwords in plaintext and always compare password
     # hashes using constant-time comparison!
-    try:
-        user.is_authenticated = request.form['password'] == users[email]['password']
-    except:
-        print("Cant GEt that way")
-    if not user:
-        print("Not Authenticated")
-        auth = request.authorization
-        
-        if auth or check_auth(auth.username, auth.password):
-            user.is_authenticated = True
-
+    user.is_authenticated = request.form['password'] == users[email]['password']
 
     return user
 
@@ -298,7 +284,7 @@ def startDeviceProcessArgument(device):
                 cwdF = d['DeviceFolder']
             else:
                 cwdF = uiControlFolder
-            if len(d['BackEndUrl']) > 0:
+            if d['BackEndUrl'] != "" :
                 backendURL = d['BackEndUrl']
             else:
                 backendURL = backendURL
@@ -1257,6 +1243,51 @@ def updateDevices():
     t = Timer(5, updateDevices )
     t.start()
 
+def updateDevicesFromJson():
+    
+    global backendURL
+    
+    mydb = mysql.connector.connect(host= mySqlHost ,user= dbUser,passwd=dbPW, database="rdmdb", port=dbPort, connection_timeout = dbTimeout)
+    mycursor = mydb.cursor()
+    for dk, d in Devices.items() :
+        try:
+            if d["Enabled"] == "true":
+                deviceEnabled = 1
+            else:
+                deviceEnabled = 0
+            if d["FastIV"] == "true":
+                deviceFastIV = 1
+            else:
+                deviceFastIV = 0
+            if d["EnableAccountManager"] == "true":
+                deviceEnableAccManager = 1
+            else:
+                deviceEnableAccManager = 0
+            if d['DeviceFolder'] != "":
+                deviceWorkspaceFolder = d['DeviceFolder']
+            else:
+                deviceWorkspaceFolder = uiControlFolder
+            if d['BackEndUrl'] != "" :
+                deviceBackendURL = d['BackEndUrl']
+            else:
+                deviceBackendURL = backendURL
+            sql = "update DeviceManagerDevices set device_id='" + dk + "', IpaPath='"+ d["IpaPath"]+ "', enabled='"+ str(deviceEnabled) + "', workspace_folder='"+ deviceWorkspaceFolder + "', backendURL = '" + str(backendURL) + "', enableAccountManager='"+ str(deviceEnableAccManager) +"', fastIV='" + str(deviceFastIV) + "'   where uuid = '" + d["DeviceName"] + "'"
+            print(sql)
+            mycursor.execute(sql)
+            print("Updated Device " + d["DeviceName"] + " in DB From JSON")
+                #time.sleep(2)
+        except:
+            print("Unable to update Device From Json")
+            
+
+    
+
+    mydb.commit()
+
+    mydb.close()
+
+
+
 def signal_handler(sig, frame):
     stopAllDeviceManual()
     print('Gracefully Exiting ')
@@ -1300,8 +1331,9 @@ if __name__ == "__main__":
     
 
     print("Finished Checking for DD")
-    CheckProcess()
     updateDevices()
+    CheckProcess()
+    updateDevicesFromJson()
     signal.signal(signal.SIGINT, signal_handler)
 
     socketio.run(app,host='0.0.0.0', port=DeviceManagerAPIPort, debug=False)
