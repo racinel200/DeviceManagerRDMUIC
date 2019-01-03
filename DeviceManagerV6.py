@@ -1167,9 +1167,7 @@ def assignDevice():
     print(device)
     print(instance)
     session = requests.Session()
-    CSRF = "YOURCSRF"
-    SessionToken = "YOURTOKEN"
-    dashboardURL  = "YourDashboardURL"
+
 
 
     headers1= {"Content-Type":"application/x-www-form-urlencoded", "Origin": dashboardURL, "Cookie":"SESSION-TOKEN="+ SessionToken+ ";CSRF-TOKEN="+CSRF}
