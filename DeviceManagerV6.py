@@ -26,7 +26,7 @@ from flask_login import current_user, login_user
 from flask_wtf import FlaskForm
 from wtforms import Form, BooleanField, StringField, PasswordField, validators
 from functools import wraps
-
+import socket
 
 
 
@@ -1246,6 +1246,8 @@ def updateDevices():
 def updateDevicesFromJson():
     
     global backendURL
+	
+    DeviceManagerHost = "http://"+ str(socket.gethostbyname(socket.gethostname())) + ":"+ str(DeviceManagerAPIPort)
     
     mydb = mysql.connector.connect(host= mySqlHost ,user= dbUser,passwd=dbPW, database="rdmdb", port=dbPort, connection_timeout = dbTimeout)
     mycursor = mydb.cursor()
@@ -1271,7 +1273,7 @@ def updateDevicesFromJson():
                 deviceBackendURL = d['BackEndUrl']
             else:
                 deviceBackendURL = backendURL
-            sql = "update DeviceManagerDevices set device_id='" + dk + "', IpaPath='"+ d["IpaPath"]+ "', enabled='"+ str(deviceEnabled) + "', workspace_folder='"+ deviceWorkspaceFolder + "', backendURL = '" + str(backendURL) + "', enableAccountManager='"+ str(deviceEnableAccManager) +"', fastIV='" + str(deviceFastIV) + "'   where uuid = '" + d["DeviceName"] + "'"
+            sql = "update DeviceManagerDevices set device_id='" + dk + "', IpaPath='"+ d["IpaPath"]+ "', enabled='"+ str(deviceEnabled) + "', workspace_folder='"+ deviceWorkspaceFolder + "', backendURL = '" + str(backendURL) + "', enableAccountManager='"+ str(deviceEnableAccManager) +"', fastIV='" + str(deviceFastIV) + "', DeviceManagerHost='"+ DeviceManagerHost + "'  where uuid = '" + d["DeviceName"] + "'"
             print(sql)
             mycursor.execute(sql)
             print("Updated Device " + d["DeviceName"] + " in DB From JSON")
