@@ -1,0 +1,192 @@
+<br/>
+
+
+
+
+
+
+<div class="row">
+
+  <div class="col-md-6">
+      <div class="card" style="overflow-y:scroll; max-height:650px;">
+    <div class="accordion" id="accordionExample">
+
+      <ng-container *ngFor="let group of deviceGroups | keys">
+        <div class="card">
+          <div class="card-header" [attr.id]="'heading' + group.value.deviceGroup">
+            <h5 class="mb-0">
+              <button (click)="updateDeviceGroup(group.value.deviceGroup)" class="btn btn-link " [attr.data-toggle]="'collapse'" [attr.data-target]="'#collapse' + group.value.deviceGroup"
+                aria-expanded="false" data-toggle="collapse1" [attr.aria-controls]="'collapse' + group.value.deviceGroup">
+
+                Device Group {{group.value.deviceGroup}}
+              </button>
+            </h5>
+          </div>
+          <div [attr.id]="'collapse' + group.value.deviceGroup" class="collapse" [attr.aria-labelledby]="'heading' + group.value.deviceGroup"
+            data-parent="#accordionExample">
+            <div class="card-body">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th scope="col">Device</th>
+                    <th scope="col">Instance</th>
+                    <th scope="col">Auto Assign</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <ng-container *ngFor="let device of devices | keys">
+                    <ng-container *ngIf="device.value.deviceGroup ==  group.value.deviceGroup">
+
+                      <tr>
+                        <td>
+                          {{device.value.uuid}}
+                        </td>
+                        <td>
+                          {{device.value.instance_name}}
+                        </td>
+                        <td>
+
+                          <table class="table table-bordered">
+                            <tbody>
+
+                              <ng-container *ngFor="let deviceAA of deviceAssignments | keys">
+                                <ng-container *ngIf="device.value.uuid == deviceAA.value.device_uuid">
+                                  <tr>
+                                    <td>
+                                      {{deviceAA.value.instance_name}}
+                                    </td>
+                                    <td>
+                                      {{deviceAA.value.AssignmentTime}}
+                                    </td>
+                                    <td>
+                                        <button (click)="deleteAssignment(device.value.uuid, deviceAA.value.instance_name, deviceAA.value.time)" class="btn btn-danger btn-sm">X</button>
+                                      </td>
+                                  </tr>
+                                </ng-container>
+                              </ng-container>
+
+                            </tbody>
+                          </table>
+                          <!-- <ul class="list-group">
+                                <ng-container *ngFor="let deviceAA of deviceAssignments | keys">
+                                    <ng-container *ngIf="device.value.uuid == deviceAA.value.device_uuid">
+                                        <li class="list-group-item">{{deviceAA.value.instance_name + " | " + deviceAA.value.AssignmentTime}}</li>
+
+                                    </ng-container>
+                                  </ng-container> 
+                              </ul> -->
+
+                          <!--  <ng-container *ngFor="let deviceAA of deviceAssignments | keys">
+                                <ng-container *ngIf="device.value.uuid == deviceAA.value.device_uuid">
+                                  <div>
+                                      {{deviceAA.value.instance_name + " | " + deviceAA.value.AssignmentTime}}
+
+                                  </div>
+                                </ng-container>
+                              </ng-container>  
+                           -->
+                          <!-- <div class="btn-group">
+                                <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                  Auto Assignments
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-right">
+                                  <ng-container *ngFor="let deviceAA of deviceAssignments | keys">
+                                    <ng-container *ngIf="device.value.uuid == deviceAA.value.device_uuid">
+                                        <button class="dropdown-item" type="button">{{deviceAA.value.instance_name + " | " + deviceAA.value.AssignmentTime}}</button>
+                                    </ng-container>
+                                  </ng-container>                                
+                                </div>
+                              </div> -->
+
+                        </td>
+                      </tr>
+                    </ng-container>
+                  </ng-container>
+
+
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+
+      </ng-container>
+
+    </div>
+
+    </div>
+
+  </div>
+
+  <div class="col-md-6">
+
+    <div class="card">
+      <div class="card-header">
+       <h4>
+          Update Device Group <b> {{selectedDeviceGroup}} </b>
+       </h4> 
+        
+      </div>
+
+      <div class="row">
+
+
+        <div class="col-md-9">
+          <h5> Update Device Group Instances </h5>
+          <select [(ngModel)]="GroupInstance" class="form-control form-control-sm">
+            <ng-container *ngFor="let instance of instances | keys">
+              <option value="{{instance.value.name}}">{{instance.value.name}}</option>
+            </ng-container>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button (click)="updateDevicesInstance(selectedDeviceGroup, GroupInstance)" class="btn btn-success">Update</button>
+        </div>
+
+
+      </div>
+
+
+      <div class="row">
+        <div class="col-md-12">
+            <h5> Update Device Group Auto Assignments </h5>
+        </div>
+      </div>
+      <div class="row">
+
+
+        <div class="col-md-6">
+          <div>
+          <select (change)="selectedAutoInstance()" [(ngModel)]="GroupAutoAssignInstance" class="form-control form-control-sm">
+            <ng-container *ngFor="let instance of instances | keys">
+              <option value="{{instance.value.name}}">{{instance.value.name}}</option>
+            </ng-container>
+          </select>
+          </div>
+          <div>
+            <b>Type:&nbsp;</b> {{GroupAutoAssignInstanceType}}
+          </div>
+        </div>
+        <div class="col-md-4">
+          
+          <div>
+              <input type="text" class="form-control" name="time" [(ngModel)]="AutoAssignTime" minlength="7" maxlength="8" placeholder="HH:MM:SS">
+          </div>
+          <div>
+              <b>Time Zone:&nbsp; </b>{{GroupAutoAssignInstanceTZ}}
+            </div>
+        </div>
+        <div class="col-md-2">
+          <button (click)="updateDevicesAutoInstance(selectedDeviceGroup, GroupAutoAssignInstance)" class="btn btn-success">Update</button>
+        </div>
+
+
+      </div>
+
+    </div>
+
+
+
+
+  </div>
