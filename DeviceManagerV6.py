@@ -725,11 +725,11 @@ def CheckProcess():
             try:
                 myresult = mycursor.fetchone()
                 DeviceLastUpdatedSeconds = curTime - myresult[2]
-                '''
+                
                 if DeviceLastUpdatedSeconds > 300 and Devices[dk]["DeviceStatus"] == "Started Up":
                     Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
                     Devices[dk]["DeviceStatus"] = "Not Updated In A While"
-                '''
+                
                 '''
                 if Devices[dk]["OldDeviceStatus"] != Devices[dk]["DeviceStatus"]:
                     try:
@@ -931,6 +931,8 @@ def CheckProcess():
                 restartProcess(dk, deviceName)
                 continue
             else:
+		Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
+                Devices[dk]["DeviceStatus"] = "Started Up"
                 if Devices[dk]["StartedUpMessageSent"] < curTime -30:
                     Devices[dk]["StartedUpMessageSent"] = curTime
                     print("Device " + deviceName + " Started up and running")
