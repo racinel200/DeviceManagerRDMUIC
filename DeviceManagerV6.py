@@ -1313,11 +1313,11 @@ def tryToGetDevices():
     TempDevices = json.loads(DeviceString)
     for d in CompDevices:
         if d not in TempDevices and d != "Known Devices:":
-            addDevice = raw_input("Would you like to add Device " + str(d) + "y/n")
+            addDevice = raw_input("Would you like to add Device " + str(d) + "y/n : ")
             if addDevice == "y":
                 TempDevices[d] = dict()
                 #inputDeviceName = raw_input("Please Name the device")
-                TempDevices[d]["DeviceName"] = raw_input("Please Name the device")
+                TempDevices[d]["DeviceName"] = raw_input("Please Name the device : ")
                 TempDevices[d]["BackEndUrl"] = backendURL
                 TempDevices[d]["FastIV"] = "false"
                 TempDevices[d]["EnableAccountManager"]= "true"
@@ -1327,7 +1327,7 @@ def tryToGetDevices():
                 TempDevices[d]["DeviceProcOut"]= ""
                 TempDevices[d]["Enabled"]= "true"
                 TempDevices[d]["RestartMessageSent"]= "0"
-                TempDevices[d]["IpaPath"]= raw_input("Please Enter Device IPA Path")
+                TempDevices[d]["IpaPath"]= raw_input("Please Enter Device IPA Path : ")
                 TempDevices[d]["DeviceProcErr"] = ""
 
     PrettyJson = json.dumps(TempDevices, indent=4, sort_keys=False)
