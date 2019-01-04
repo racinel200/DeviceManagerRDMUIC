@@ -7,14 +7,14 @@
 
 
 
-        <div class="col">
-            <!-- <div class="card" style="max-height:700px;overflow-y:scroll;"> -->
+        <div class="col " >
+             <div class="card" style="max-height:700px;overflow-y:scroll;overflow-x:visible;"> 
                 
-            <table class="table table-bordered" style="max-height:700px;overflow-y:scroll;" >
+            <table class="table table-bordered"  >
                 <thead>
                     <tr>
                         <th scope="col">Device</th>
-                        <th scope="col" *ngIf="!(ShowDevice)">Enabled</th>
+                        <th scope="col" *ngIf="!(ShowDevice)">Instance</th>
                         <th scope="col" *ngIf="!(ShowDevice)">Status</th>
                         <th scope="col" *ngIf="!(ShowDevice)">Last Update({{LastUpdatePercent}}%)</th>
                         <th scope="col" *ngIf="!(ShowDevice)">Manage Device</th>
@@ -28,7 +28,8 @@
                             <p style="cursor:pointer;color:blue;text-decoration: underline;" (click)="showDevice(i)">{{device.value.uuid}}</p>
                         </th>
                         <td *ngIf="!(ShowDevice)">
-                            <ng-container *ngIf="device.value.enabled == 0">
+                            {{device.value.instance_name}}
+                            <!-- <ng-container *ngIf="device.value.enabled == 0">
 
                                 <button (click)="disableDevice(device.value.uuid)" class="btn btn-success">Enable</button>
 
@@ -37,7 +38,7 @@
 
                                 <button (click)="disableDevice(device.value.uuid)" class="btn btn-danger">Disable</button>
 
-                            </ng-container>
+                            </ng-container> -->
 
                         </td>
                         <td [ngClass]="{'WarningUpdate': device.value.deviceStatus == 'Building' || device.value.deviceStatus == 'Started Building' || device.value.deviceStatus == 'Queued' , 'ErrorUpdate': device.value.deviceStatus == 'Disabled' || device.value.deviceStatus == 'Not Updated In A While' , 'AllGoodUpdate': device.value.deviceStatus == 'Started Up' }" *ngIf="!(ShowDevice)">{{device.value.deviceStatus}}</td>
@@ -56,7 +57,7 @@
 
 
             </table>
-            <!-- </div> -->
+           </div> 
             <!-- DeviceTable Column -->
         </div>
 
