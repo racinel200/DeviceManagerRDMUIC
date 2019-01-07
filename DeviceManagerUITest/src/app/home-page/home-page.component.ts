@@ -1,7 +1,8 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Headers, Http, Response, RequestOptions } from "@angular/http"
 import 'rxjs/add/operator/map'
-
+import {interval} from "rxjs/observable/interval";
+import {startWith, switchMap} from "rxjs/operators";
 import { log } from 'util';
 
 @Component({
@@ -13,14 +14,18 @@ export class HomePageComponent implements OnInit {
 
  
   
-  public devices: any[];
+  devices = {}
   ShowDevice = false
   selectedDevice = {}
   selectedDeviceIndex = 0
   deviceAssignments = {}
   instances = {}
+  dashboardurl = "http://morenonet.info.tm:9000/dashboard"
   assignUrl = "/device/assign/"
   deviceGroups = {}
+  username = "HPD"
+  DeviceManagerAPIURL = "http://10.0.0.28:8887"
+  pw = "PGANPassword"
   DeviceOuputURL = "/DeviceManager/GetDeviceOutput"
   DeviceErrLogURL = "/DeviceManager/GetDeviceErrLog"
   DeviceErrLogBackupURL = "ErrLogBackup"
@@ -31,47 +36,40 @@ export class HomePageComponent implements OnInit {
   DeviceRebuildDDFolderURL = "/DeviceManager/RebuildDDFolder"
   logOutputHTML = ""
   LastUpdatePercent = 0
-  username = "yourApiUsername"
-  pw = "PokemonIsAwesome"
-  DeviceManagerAPIURL = "http://HOSTIP:8887"
-  dashboardurl = "http://DAshboardIP:9000/dashboard"
+  
 
 
   constructor(public http: Http) { }
 
   ngOnInit() {
-
-
+	  interval(10000)
+		.pipe(startWith(0))
+		.subscribe(() => this.loadDevices());
+  }
+  
+  loadDevices() {
+	  console.log("loading...");
       this.getQueryResults("select * from DeviceManagerDevices").subscribe(data => {
         this.devices = JSON.parse(data["_body"])
 
 	var LastSecondGoodCount = 0
-  var disabledCount = 0
 	for (let d in this.devices){
 		var currentTime = Math.floor(Date.now() /1000)
 		var SecondsSinceUpdate  = currentTime - this.devices[d]['last_seen']
-		console.log(SecondsSinceUpdate)
-    this.devices[d]["SecondsSinceUpdate"] = SecondsSinceUpdate
-      if (this.devices[d]['enabled'] != 0){
-        if (SecondsSinceUpdate < 180 ){
-        console.log("Enabled")
-        console.log(this.devices[d]['enabled'])
-        LastSecondGoodCount = LastSecondGoodCount + 1
-        
-      }
-			}else{
-        console.log("Disabled")
-        disabledCount = disabledCount + 1
-      
-      }
-	
+		//console.log(SecondsSinceUpdate)
+		if (SecondsSinceUpdate < 180 ){
+			LastSecondGoodCount = LastSecondGoodCount + 1
+		
+			}
+		console.log(currentTime - this.devices[d]['last_seen']);
+		this.devices[d]["SecondsSinceUpdate"] = SecondsSinceUpdate
 
 	}
-	this.LastUpdatePercent = (LastSecondGoodCount  / (this.devices.length - disabledCount) )  * 100
+	this.LastUpdatePercent = (LastSecondGoodCount  / this.devices.length) * 100
 	
   
       
-        console.log(this.devices)
+        //console.log(this.devices)
       }, error => {
      
       });
@@ -81,7 +79,7 @@ export class HomePageComponent implements OnInit {
         this.instances = JSON.parse(data["_body"])
   
       
-        console.log(this.instances)
+        //console.log(this.instances)
       }, error => {
      
       });
@@ -95,7 +93,7 @@ export class HomePageComponent implements OnInit {
         }
   
       
-        console.log(this.deviceAssignments)
+        //console.log(this.deviceAssignments)
       }, error => {
      
       });
@@ -105,7 +103,7 @@ export class HomePageComponent implements OnInit {
         this.deviceGroups = JSON.parse(data["_body"])
   
       
-        console.log(this.deviceGroups)
+        //console.log(this.deviceGroups)
     
 
 
@@ -114,15 +112,7 @@ export class HomePageComponent implements OnInit {
       
     }, error => {
    
-    });
-
-    
-
-
-    
-
-   
-
+    });	  
   }
 
   backToDevices(){
