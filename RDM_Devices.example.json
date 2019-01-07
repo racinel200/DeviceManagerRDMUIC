@@ -1,0 +1,47 @@
+{
+    "1ded2e8d6f7e9eabd332dcdb3f6c3118ddb9e733": {
+        "DeviceName": "UIDINDASHBOARD",
+        "DeviceFolder": "",
+        "DeviceProcess": "None",
+        "BackEndUrl": "",
+        "FastIV": "false",
+        "RestartMessageSent": "0",
+        "EnableAccountManager": "true",
+        "AutoRestartDevice":"true",
+        "DeviceProcOut": "",
+        "Enabled": "true",
+        "IpaPath": "/AutoIpaFiles/ispoofer.ipa",
+        "DeviceProcErr": ""
+    },
+    "fc68fc3a414edee983c6f63032ab65de42168a4b": {
+        "DeviceName": "Device9",
+        "BackEndUrl": "",
+        "FastIV": "false",
+        "EnableAccountManager": "true",
+        "DeviceFolder": "",
+        "AutoRestartDevice":"true",
+        "DeviceProcess": "None",
+        "DeviceProcOut": "",
+        "Enabled": "true",
+        "RestartMessageSent": "0",
+        "IpaPath": "/AutoIpaFiles/ispoofer.ipa",
+        "DeviceProcErr": ""
+    }
+    ,
+    "066c31890d626aef0bfd65f9a058f76068149f4b": {
+        "DeviceName": "Device8",
+        "EnableAccountManager": "true",
+        "DeviceFolder": "",
+        "FastIV": "false",
+        "AutoRestartDevice":"true",
+        "BackEndUrl": "",
+        "Enabled": "true",
+        "IpaPath": "/AutoIpaFiles/ispoofer.ipa",
+        "DeviceProcess": "None",
+        "RestartMessageSent": "0",
+        "DeviceProcOut": "",
+        "DeviceProcErr": ""
+    }
+    
+    
+}
