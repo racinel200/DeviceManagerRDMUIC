@@ -725,6 +725,7 @@ def CheckProcess():
             mycursor.execute("select uuid, instance_name, last_seen from rdmdb.device where uuid = '"+deviceName +"'")
             try:
                 myresult = mycursor.fetchone()
+		mydb.close()
                 DeviceLastUpdatedSeconds = curTime - myresult[2]
                 
                 if DeviceLastUpdatedSeconds > 300 and Devices[dk]["DeviceStatus"] == "Started Up":
@@ -746,11 +747,13 @@ def CheckProcess():
                 Devices[dk]["DeviceLastUpdatedDB"] = DeviceLastUpdatedSeconds
                 Devices[dk]["DeviceInstance"] = myresult[1]
             except:
+		mydb.close()
                 print("DB Connection Timeout")
                 DeviceLastUpdatedSeconds = 0
             
         except:
             print("Error connecting to DB")
+	    
             print(str(datetime.now()))
             DeviceLastUpdatedSeconds =0
             Devices[dk]["DeviceLastUpdatedDB"] = DeviceLastUpdatedSeconds
