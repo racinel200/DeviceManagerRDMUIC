@@ -4,7 +4,7 @@
     "dbPort": 3306,
     "dbTimeout": 2,
     "DeviceManagerAPIPort": 8887,
-    "NotificationWebhookURL": "https://discordapp.com/api/webhooks/521469738648600576/1CY6PCj88GRkZi922LuLnngTIC2blr3ixmC6lVbck2CaBkJ89__2hG_uWZ878flIxgO9",
+    "NotificationWebhookURL": "",
     "uiControlFolder": "_Base",
     "delayTime": 2,
     "backendControllerURL": "http://BACKENDURL:9001",
