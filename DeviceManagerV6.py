@@ -181,9 +181,12 @@ def LoadConfig():
     #Time Between running check on All Devices
     global delayTime
     delayTime = configJson["delayTime"]
-    ##Default Backend URL##
-    global backendURL
-    backendURL = configJson["backendURL"]
+    ##Default Backend Controller URL##
+    global backendControllerURL
+    backendControllerURL = configJson["backendControllerURL"]
+    ##Default Backend Raw URL##
+    global backendRawURL
+    backendRawURL = configJson["backendRawURL"]
     ###Max Number of Builds At the Same Time###
     global maxBuilds
     maxBuilds = configJson["maxBuilds"]
@@ -257,7 +260,8 @@ Devices = json.loads(DeviceString)
 
 def startDeviceProcessArgument(device):
     
-    global backendURL
+    global backendControllerURL
+    global backendRawURL
     global Devices
     
     
@@ -285,10 +289,15 @@ def startDeviceProcessArgument(device):
                 cwdF = d['DeviceFolder']
             else:
                 cwdF = uiControlFolder
-            if d['BackEndUrl'] != "" :
-                backendURL = d['BackEndUrl']
+            if d['BackEndControllerUrl'] != "" :
+                backendControllerURL = d['BackEndControllerUrl']
             else:
-                backendURL = backendURL
+                backendControllerURL = backendControllerURL
+            if d['BackEndRawUrl'] != "" :
+                backendRawURL = d['BackEndRawUrl']
+            else:
+                backendRawURL = backendRawURL
+
             
             if len(d['EnableAccountManager']) > 0:
                 enableAccountManager = d['EnableAccountManager']
@@ -298,7 +307,8 @@ def startDeviceProcessArgument(device):
             print("Device ID")
             print(dk)
 
-    print("BackendURL is " + str(backendURL))
+    print("BackendControllerURL is " + str(backendControllerURL))
+    print("BackendRawURL is " + str(backendRawURL))
     cd = os.getcwd()
 
     workspacePath = cd +"/"+ cwdF
@@ -318,7 +328,7 @@ def startDeviceProcessArgument(device):
         print("####################")
         print("Starting without build")
         print("####################")
-        proc = subprocess.Popen(shlex.split('xcodebuild test-without-building -workspace RealDeviceMap-UIControl.xcworkspace -scheme "RealDeviceMap-UIControl" -destination "id={}" -allowProvisioningUpdates -destination-timeout "{}" -derivedDataPath "{}" name="{}" enableAccountManager="{}" backendURL="{}" fastIV="{}" raidMaxTime="{}" minDelayLogout="{}" targetMaxDistance="{}"'.format(device,destinationTimeout, DdFilePath, deviceName, enableAccountManager, backendURL, Devices[device]['FastIV'],  raidMaxTime, minDelayLogout, targetMaxDistance)), stdout=ConsoleFile, cwd=workspacePath,preexec_fn=os.setsid, stderr = ErrFile )
+        proc = subprocess.Popen(shlex.split('xcodebuild test-without-building -workspace RealDeviceMap-UIControl.xcworkspace -scheme "RealDeviceMap-UIControl" -destination "id={}" -allowProvisioningUpdates -destination-timeout "{}" -derivedDataPath "{}" name="{}" enableAccountManager="{}" backendControllerURL="{}" backendRawURL="{}" fastIV="{}" raidMaxTime="{}" minDelayLogout="{}" targetMaxDistance="{}" ultraIV="true"'.format(device,destinationTimeout, DdFilePath, deviceName, enableAccountManager, backendControllerURL, backendRawURL, Devices[device]['FastIV'],  raidMaxTime, minDelayLogout, targetMaxDistance)), stdout=ConsoleFile, cwd=workspacePath,preexec_fn=os.setsid, stderr = ErrFile )
     else:
         print("####################")
         print("Starting with build")
@@ -330,7 +340,7 @@ def startDeviceProcessArgument(device):
 
         print("Copying DD Folder from Base Template")
         shutil.copytree("DD/Base_" + cwdF, "DD/" + d['DeviceName'])
-        proc = subprocess.Popen(shlex.split('xcodebuild test-without-building -workspace RealDeviceMap-UIControl.xcworkspace -scheme "RealDeviceMap-UIControl" -destination "id={}" -allowProvisioningUpdates -destination-timeout 90 -derivedDataPath "{}" name="{}" enableAccountManager="{}" backendURL="{}" fastIV="{}" raidMaxTime="{}" minDelayLogout="{}" targetMaxDistance="{}"'.format(device,DdFilePath, deviceName, enableAccountManager, backendURL, Devices[device]['FastIV'],  raidMaxTime, minDelayLogout, targetMaxDistance)), stdout=ConsoleFile, cwd=workspacePath,preexec_fn=os.setsid, stderr = ErrFile )
+        proc = subprocess.Popen(shlex.split('xcodebuild test-without-building -workspace RealDeviceMap-UIControl.xcworkspace -scheme "RealDeviceMap-UIControl" -destination "id={}" -allowProvisioningUpdates -destination-timeout 90 -derivedDataPath "{}" name="{}" enableAccountManager="{}" backendControllerURL="{}" backendRawURL="{}" fastIV="{}" raidMaxTime="{}" minDelayLogout="{}" targetMaxDistance="{}" ultraIV="true"'.format(device,DdFilePath, deviceName, enableAccountManager, backendControllerURL, backendRawURL, Devices[device]['FastIV'],  raidMaxTime, minDelayLogout, targetMaxDistance)), stdout=ConsoleFile, cwd=workspacePath,preexec_fn=os.setsid, stderr = ErrFile )
 
 #proc = subprocess.Popen(shlex.split('xcodebuild test -workspace RealDeviceMap-UIControl.xcworkspace -scheme "RealDeviceMap-UIControl" -destination "id={}" -allowProvisioningUpdates -destination-timeout 90 -derivedDataPath "{}" name="{}" enableAccountManager="{}" backendURL="{}" fastIV="{}"  raidMaxTime="{}"'.format(device,DdFilePath, deviceName, enableAccountManager, backendURL, Devices[device]['FastIV'], raidMaxTime)), stdout=ConsoleFile, cwd=workspacePath,preexec_fn=os.setsid , stderr=ErrFile)
 
@@ -395,10 +405,13 @@ def RestartDevice(device):
 @flask_login.login_required
 def GetDeviceScreenshot():
     device = request.args.get('Device')
+    capture = request.args.get('Capture')
     for dk,d in Devices.items():
         if device == d['DeviceName']:
             device = dk
-    GetDeviceCapture(device)
+
+    if capture == 'true':
+        GetDeviceCapture(device)
 
     filename = "DeviceCapture"+ str(device) + ".png"
     return send_file(filename, mimetype='image/png')
@@ -432,12 +445,12 @@ def getProcessStatus():
         deviceRebuildDDFolderButton = '<button onclick="window.location.href=' + "'/DeviceManager/RebuildDDFolder?Device=" + d["DeviceName"] + "'" + '">Rebuild DD Folder</button>'
         deviceScreenshotButton = '<button onclick="window.location.href=' + "'/DeviceManager/GetDeviceScreenshot?Device=" + d["DeviceName"] + "'" + '">View(USBOnly)</button>'
         deviceRestartButton = '<button onclick="window.location.href=' + "'/DeviceManager/RestartDevice?Device=" + d["DeviceName"] + "'" + '">Restart(USBOnly)</button>'
-        tableMiddleString = tableMiddleString + '<tr> <td><b>' + d["DeviceName"] + "</b>&nbsp" + deviceStopButton +deviceStartButton + '</td> <td>' + d["DeviceStatus"] + '</td> <td>' + d["DeviceInstance"] + "&nbsp" + '</td> <td>' + str(d["DeviceLastUpdatedDB"]) +'</td> <td><div>' +deviceOutputLogButton + "&nbsp" + deviceErrLogButton+ deviceDeleteUIControlButton + "&nbsp" + deviceScreenshotButton+ "</div><div>" + deviceOutputLogBackupButton + "&nbsp" + deviceErrLogBackupButton + "&nbsp" + deviceRebuildDDFolderButton + "&nbsp" + deviceRestartButton+ '</div></td> </tr> '
+        tableMiddleString = tableMiddleString + '<tr> <td><b>' + d["DeviceName"] + "</b>&nbsp" + deviceStopButton +deviceStartButton + '</td> <td>' + d["DeviceStatus"] + '</td> <td>' + d["DeviceInstance"] + "&nbsp" + '</td> <td>' + ('' if d["Account"] is None else str(d["Account"])) + '</td> <td>' + ('' if d["Level"] is None else str(d["Level"])) + '</td> <td>' + str(d["DeviceLastUpdatedDB"]) +'</td> <td align="center"><a href="/DeviceManager/GetDeviceScreenshot?Device=' + d["DeviceName"] + '&Capture=true"><img src="/DeviceManager/GetDeviceScreenshot?Device=' + d["DeviceName"] + '&t=' + str(time.time()) + '" height="100px" /></a> </td> <td><div>' +deviceOutputLogButton + "&nbsp" + deviceErrLogButton+ deviceDeleteUIControlButton + "&nbsp" + deviceScreenshotButton+ "</div><div>" + deviceOutputLogBackupButton + "&nbsp" + deviceErrLogBackupButton + "&nbsp" + deviceRebuildDDFolderButton + "&nbsp" + deviceRestartButton+ '</div></td> </tr> '
     #statusString = statusString + "<b>" + d["DeviceName"] + "</b> has a status of <b>" + d["DeviceStatus"] + "</b>  and was last updated in the DB <b>" + str(Devices[dk]["DeviceLastUpdatedDB"]) + "</b> seconds ago <br />"
 
     tableString = DeviceManagerTableString
 
-    tableEndString = '</tbody> </table> '
+    tableEndString = '</tbody> </table></div></div></div></body></html> '
 
     returnString = tableString +tableMiddleString + tableEndString
     return returnString
@@ -447,10 +460,12 @@ def getProcessStatus():
 def startDeviceProcess():
     
     
-    global backendURL
+    global backendControllerURL
+    global backendRawURL
     global Devices
   
-    print("BackendURL is " + str(backendURL))
+    print("BackendControllerURL is " + str(backendControllerURL))
+    print("BackendRawURL is " + str(backendRawURL))
 
     
     device = request.args.get('Device')
@@ -720,19 +735,23 @@ def CheckProcess():
 
         try:
             curTime = int(time.time())
-            mydb = mysql.connector.connect(host= mySqlHost ,user= dbUser,passwd=dbPW, database="rdmdb", port=dbPort, connection_timeout = dbTimeout)
+            mydb = mysql.connector.connect(host= mySqlHost ,user= dbUser,passwd=dbPW, database="rdmdb", port=dbPort, connection_timeout = dbTimeout, auth_plugin = 'mysql_native_password')
             mycursor = mydb.cursor()
-            mycursor.execute("select uuid, instance_name, last_seen from rdmdb.device where uuid = '"+deviceName +"'")
+            mycursor.execute("select d.uuid, d.instance_name, d.last_seen, a.username, a.level from rdmdb.device d left join rdmdb.account a on d.account_username = a.username where d.uuid = '"+deviceName +"'")
             try:
                 myresult = mycursor.fetchone()
+                mydb.close()
                 DeviceLastUpdatedSeconds = curTime - myresult[2]
                 
-                if DeviceLastUpdatedSeconds > 300 and Devices[dk]["DeviceStatus"] == "Started Up":
-                    Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
-                    Devices[dk]["DeviceStatus"] = "Not Updated In A While"
-                if DeviceLastUpdatedSeconds > 30 and Devices[dk]["DeviceStatus"] == "Not Updated In A While":
-                    Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
-                    Devices[dk]["DeviceStatus"] = "Started Up"
+                try:
+                    if DeviceLastUpdatedSeconds > 300 and Devices[dk]["DeviceStatus"] == "Started Up":
+                        Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
+                        Devices[dk]["DeviceStatus"] = "Not Updated In A While"
+                    if DeviceLastUpdatedSeconds > 30 and Devices[dk]["DeviceStatus"] == "Not Updated In A While":
+                        Devices[dk]["OldDeviceStatus"] = Devices[dk]["DeviceStatus"]
+                        Devices[dk]["DeviceStatus"] = "Started Up"
+                except:
+                    print("Unable to update device" + deviceName )
                 '''
                 if Devices[dk]["OldDeviceStatus"] != Devices[dk]["DeviceStatus"]:
                     try:
@@ -745,8 +764,12 @@ def CheckProcess():
                 '''
                 Devices[dk]["DeviceLastUpdatedDB"] = DeviceLastUpdatedSeconds
                 Devices[dk]["DeviceInstance"] = myresult[1]
+                Devices[dk]["Account"] = myresult[3]
+                Devices[dk]["Level"] = myresult[4]
             except:
-                print("DB Connection Timeout")
+                mydb.close()
+                print("DB Connection Timeout Device Check")
+                print("Unable to update device" + deviceName )
                 DeviceLastUpdatedSeconds = 0
             
         except:
@@ -794,7 +817,7 @@ def CheckProcess():
             devicelg = ConsoleFile.read()
             ConsoleFile.close()
             ####Check for Started Status in Device Log#####
-            if "[STATUS] Started" in devicelg:
+            if "[STATUS] Startup" in devicelg:
                 Devices[device]['StartTime'] = int(time.time())
                 timeSinceStart = curTime -  Devices[device]['StartTime']
                 Devices[dk]["DeviceBuilding"] = False
@@ -1139,7 +1162,7 @@ def performSqlQuery():
 
     query = request.args.get('Query')
 
-    mydb = mysql.connector.connect(host= mySqlHost ,user= dbUser,passwd=dbPW, database="rdmdb", port=dbPort, connection_timeout = 15)
+    mydb = mysql.connector.connect(host= mySqlHost ,user= dbUser,passwd=dbPW, database="rdmdb", port=dbPort, connection_timeout = 15, auth_plugin = 'mysql_native_password')
     mycursor = mydb.cursor(dictionary=True)
     mycursor.execute(query)
     try:
@@ -1232,10 +1255,11 @@ def DeleteAutoAssignDevice():
     return jsonify(r.status_code)
 
 def updateDevices():
-    mydb = mysql.connector.connect(host= mySqlHost ,user= dbUser,passwd=dbPW, database="rdmdb", port=dbPort, connection_timeout = dbTimeout)
+    mydb = mysql.connector.connect(host= mySqlHost ,user= dbUser,passwd=dbPW, database="rdmdb", port=dbPort, connection_timeout = dbTimeout, auth_plugin = 'mysql_native_password')
     mycursor = mydb.cursor()
     for dk, d in Devices.items() :
         try:
+            GetDeviceCapture(dk)
             if Devices[dk]["OldDeviceStatus"] != d["DeviceStatus"]:
                 mycursor.execute("update DeviceManagerDevices set deviceStatus='" + d["DeviceStatus"] + "' where uuid = '" + d["DeviceName"] + "'")
                 mydb.commit()
@@ -1244,17 +1268,17 @@ def updateDevices():
         except:
             print("Unable to update Device")
     mydb.close()
-
     t = Timer(5, updateDevices )
     t.start()
 
 def updateDevicesFromJson():
     
-    global backendURL
+    global backendControllerURL
+    global backendRawURL
 	
     DeviceManagerHost = "http://"+ str(socket.gethostbyname(socket.gethostname())) + ":"+ str(DeviceManagerAPIPort)
     
-    mydb = mysql.connector.connect(host= mySqlHost ,user= dbUser,passwd=dbPW, database="rdmdb", port=dbPort, connection_timeout = dbTimeout)
+    mydb = mysql.connector.connect(host= mySqlHost ,user= dbUser,passwd=dbPW, database="rdmdb", port=dbPort, connection_timeout = dbTimeout, auth_plugin = 'mysql_native_password')
     mycursor = mydb.cursor()
     for dk, d in Devices.items() :
         try:
@@ -1274,11 +1298,15 @@ def updateDevicesFromJson():
                 deviceWorkspaceFolder = d['DeviceFolder']
             else:
                 deviceWorkspaceFolder = uiControlFolder
-            if d['BackEndUrl'] != "" :
-                deviceBackendURL = d['BackEndUrl']
+            if d['BackEndControllerUrl'] != "" :
+                deviceBackendControllerURL = d['BackEndControllerUrl']
             else:
-                deviceBackendURL = backendURL
-            sql = "update DeviceManagerDevices set device_id='" + dk + "', IpaPath='"+ d["IpaPath"]+ "', enabled='"+ str(deviceEnabled) + "', workspace_folder='"+ deviceWorkspaceFolder + "', backendURL = '" + str(backendURL) + "', enableAccountManager='"+ str(deviceEnableAccManager) +"', fastIV='" + str(deviceFastIV) + "', DeviceManagerHost='"+ DeviceManagerHost + "'  where uuid = '" + d["DeviceName"] + "'"
+                deviceBackendControllerURL = deviceBackendControllerURL
+            if d['BackEndRawUrl'] != "" :
+                deviceBackendRawURL = d['BackEndRawUrl']
+            else:
+                deviceBackendRawURL = deviceBackendRawURL
+            sql = "update DeviceManagerDevices set device_id='" + dk + "', IpaPath='"+ d["IpaPath"]+ "', enabled='"+ str(deviceEnabled) + "', workspace_folder='"+ deviceWorkspaceFolder + "', backendControllerURL = '" + str(backendControllerURL) + "', backendRawURL = '" + str(backendRawURL) + "', enableAccountManager='"+ str(deviceEnableAccManager) +"', fastIV='" + str(deviceFastIV) + "', DeviceManagerHost='"+ DeviceManagerHost + "'  where uuid = '" + d["DeviceName"] + "'"
             print(sql)
             mycursor.execute(sql)
             print("Updated Device " + d["DeviceName"] + " in DB From JSON")
@@ -1316,7 +1344,8 @@ def tryToGetDevices():
                 TempDevices[d] = dict()
                 #inputDeviceName = raw_input("Please Name the device")
                 TempDevices[d]["DeviceName"] = raw_input("Please Name the device : ")
-                TempDevices[d]["BackEndUrl"] = backendURL
+                TempDevices[d]["BackEndControllerUrl"] = backendControllerURL
+                TempDevices[d]["BackEndRawUrl"] = backendRawURL
                 TempDevices[d]["FastIV"] = "false"
                 TempDevices[d]["EnableAccountManager"]= "true"
                 TempDevices[d]["DeviceFolder"]= uiControlFolder
@@ -1385,7 +1414,7 @@ if __name__ == "__main__":
     print("Finished Checking for DD")
     updateDevices()
     CheckProcess()
-    updateDevicesFromJson()
+#    updateDevicesFromJson()
     signal.signal(signal.SIGINT, signal_handler)
 
     socketio.run(app,host='0.0.0.0', port=DeviceManagerAPIPort, debug=False)
